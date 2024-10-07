@@ -4,6 +4,7 @@ import {
   Program,
   Wallet,
   utils,
+  type IdlAccounts,
 } from "@coral-xyz/anchor";
 import { IDL, type Perpetuals } from "./idl";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
@@ -41,6 +42,57 @@ async function getCustodyAssets() {
     console.log("Custody data: ", custodyAssetsData);
   } catch (error) {
     console.error("Failed to parse Jupiter Perps IDL", error);
+  }
+}
+
+async function getOpenPositions() {
+  try {
+    const connection = new Connection("https://api.mainnet-beta.solana.com");
+
+    const program = new Program<Perpetuals>(
+      IDL,
+      JUPITER_PERPETUALS_PROGRAM,
+      new AnchorProvider(
+        connection,
+        new Wallet(Keypair.generate()),
+        AnchorProvider.defaultOptions(),
+      ),
+    );
+
+    const gpaResult = await program.provider.connection.getProgramAccounts(
+      program.programId,
+      {
+        commitment: "confirmed",
+        filters: [
+          // Pass in a wallet address here to filter for positions for
+          // a specific wallet address
+          // { memcmp: { bytes: userPubkey.toBase58(), offset: 8 } },
+          {
+            memcmp: program.coder.accounts.memcmp("position"),
+          },
+        ],
+      },
+    );
+
+    const positions = gpaResult.map((item) => {
+      return {
+        publicKey: item.pubkey,
+        account: program.coder.accounts.decode(
+          "position",
+          item.account.data,
+        ) as IdlAccounts<Perpetuals>["position"],
+      };
+    });
+
+    // Old positions accounts are not closed, but have `sizeUsd = 0`
+    // i.e. open positions have a non-zero `sizeUsd`
+    const openPositions = positions.filter((position) =>
+      position.account.sizeUsd.gtn(0),
+    );
+
+    console.log("Open positions: ", openPositions);
+  } catch (error) {
+    console.error("Failed to fetch open positions", error);
   }
 }
 
