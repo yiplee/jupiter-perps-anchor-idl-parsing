@@ -160,6 +160,61 @@ async function getPositionsForWallet(walletAddress: string) {
   }
 }
 
+async function subscribeToWallet(walletAddress: string) {
+  try {
+    const connection = new Connection("https://api.mainnet-beta.solana.com");
+
+    const program = new Program<Perpetuals>(
+      IDL,
+      JUPITER_PERPETUALS_PROGRAM,
+      new AnchorProvider(
+        connection,
+        new Wallet(Keypair.generate()),
+        AnchorProvider.defaultOptions(),
+      ),
+    );
+
+    connection.onProgramAccountChange(
+      program.programId,
+      async ({
+        accountId: positionPubkey,
+        accountInfo: { data: positionBuffer },
+      }) => {
+        try {
+          const position = program.coder.accounts.decode(
+            "position",
+            positionBuffer,
+          ) as IdlAccounts<Perpetuals>["position"];
+
+          console.log("Position updated:", positionPubkey.toString());
+        } catch (err) {
+          console.error(
+            `Failed to decode position ${positionPubkey.toString()}`,
+            err,
+          );
+        }
+      },
+      {
+        commitment: "confirmed",
+        filters: [
+          {
+            memcmp: {
+              bytes: new PublicKey(walletAddress).toBase58(),
+              offset: 8,
+            },
+          },
+          { memcmp: program.coder.accounts.memcmp("position") },
+        ],
+      },
+    );
+  } catch (error) {
+    console.error(
+      `Failed to stream position updates for wallet address ${walletAddress}`,
+      error,
+    );
+  }
+}
+
 const JUPITER_PERPETUALS_EVENT_AUTHORITY = new PublicKey(
   "37hJBDnntwqhGbK7L6M1bLyvccj4u55CCUiLPdYkiqBN",
 );
