@@ -1,6 +1,7 @@
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, BN, Program, Wallet } from "@coral-xyz/anchor";
-import { IDL as DovesIDL } from "./doves-idl";
+import { IDL as DovesIDL } from "../idl/doves-idl";
+import { CUSTODY_PUBKEY } from "../constants";
 
 /* Constants */
 
@@ -18,32 +19,24 @@ const dovesProgram = new Program(
   }),
 );
 
-enum CUSTODY {
-  SOL = "7xS2gz2bTp3fwCC7knJvUWTEU9Tycczu6VhJYKgi1wdz",
-  ETH = "AQCGyheWPLeo6Qp9WpYS9m3Qj479t7R636N9ey1rEjEn",
-  BTC = "5Pv3gM9JrFFH883SWAhvJC9RPYmo8UNxuFtv5bMMALkm",
-  USDC = "G18jKKXQwBbrHeiK3C9MRXhkHsLHf7XgCSisykV46EZa",
-  USDT = "4vkNeXiYEUizLdrpdPS1eC2mccyM4NUPRtERrk6ZETkk",
-}
-
 const CUSTODY_DETAILS = {
-  [CUSTODY.SOL]: {
+  [CUSTODY_PUBKEY.SOL]: {
     mint: new PublicKey("So11111111111111111111111111111111111111112"),
     dovesOracle: new PublicKey("39cWjvHrpHNz2SbXv6ME4NPhqBDBd4KsjUYv5JkHEAJU"),
   },
-  [CUSTODY.ETH]: {
+  [CUSTODY_PUBKEY.ETH]: {
     mint: new PublicKey("7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs"),
     dovesOracle: new PublicKey("5URYohbPy32nxK1t3jAHVNfdWY2xTubHiFvLrE3VhXEp"),
   },
-  [CUSTODY.BTC]: {
+  [CUSTODY_PUBKEY.BTC]: {
     mint: new PublicKey("3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh"),
     dovesOracle: new PublicKey("4HBbPx9QJdjJ7GUe6bsiJjGybvfpDhQMMPXP1UEa7VT5"),
   },
-  [CUSTODY.USDC]: {
+  [CUSTODY_PUBKEY.USDC]: {
     mint: new PublicKey("EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"),
     dovesOracle: new PublicKey("A28T5pKtscnhDo6C1Sz786Tup88aTjt8uyKewjVvPrGk"),
   },
-  [CUSTODY.USDT]: {
+  [CUSTODY_PUBKEY.USDT]: {
     mint: new PublicKey("Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"),
     dovesOracle: new PublicKey("AGW7q2a3WxCzh5TB2Q6yNde1Nf41g3HLaaXdybz7cbBU"),
   },
@@ -52,28 +45,28 @@ const CUSTODY_DETAILS = {
 const DOVES_ORACLES = [
   {
     name: "SOL",
-    publicKey: CUSTODY_DETAILS[CUSTODY.SOL].dovesOracle,
-    custody: CUSTODY.SOL,
+    publicKey: CUSTODY_DETAILS[CUSTODY_PUBKEY.SOL].dovesOracle,
+    custody: CUSTODY_PUBKEY.SOL,
   },
   {
     name: "ETH",
-    publicKey: CUSTODY_DETAILS[CUSTODY.ETH].dovesOracle,
-    custody: CUSTODY.ETH,
+    publicKey: CUSTODY_DETAILS[CUSTODY_PUBKEY.ETH].dovesOracle,
+    custody: CUSTODY_PUBKEY.ETH,
   },
   {
     name: "BTC",
-    publicKey: CUSTODY_DETAILS[CUSTODY.BTC].dovesOracle,
-    custody: CUSTODY.BTC,
+    publicKey: CUSTODY_DETAILS[CUSTODY_PUBKEY.BTC].dovesOracle,
+    custody: CUSTODY_PUBKEY.BTC,
   },
   {
     name: "USDC",
-    publicKey: CUSTODY_DETAILS[CUSTODY.USDC].dovesOracle,
-    custody: CUSTODY.USDC,
+    publicKey: CUSTODY_DETAILS[CUSTODY_PUBKEY.USDC].dovesOracle,
+    custody: CUSTODY_PUBKEY.USDC,
   },
   {
     name: "USDT",
-    publicKey: CUSTODY_DETAILS[CUSTODY.USDT].dovesOracle,
-    custody: CUSTODY.USDT,
+    publicKey: CUSTODY_DETAILS[CUSTODY_PUBKEY.USDT].dovesOracle,
+    custody: CUSTODY_PUBKEY.USDT,
   },
 ];
 
@@ -90,6 +83,7 @@ type CustodyToOraclePrice = Record<string, DovesOraclePrice>;
 
 /* Functions */
 
+// Helper function to format `bn` values into the string USD representation
 function BNToUSDRepresentation(
   value: BN,
   exponent: number = 8,

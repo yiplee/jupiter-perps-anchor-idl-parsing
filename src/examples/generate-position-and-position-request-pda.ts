@@ -1,13 +1,15 @@
 import { BN } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
+import {
+  JLP_POOL_ACCOUNT_PUBKEY,
+  JUPITER_PERPETUALS_PROGRAM_ID,
+} from "../constants";
 
-const JUPITER_PERPS_PROGRAM_ID = new PublicKey(
-  "PERPHjGBqRHArX4DySjwM6UJHiR3sWAatqfdBS2qQJu",
-);
-const JUPITER_PERPS_POOL_ADDRESS = new PublicKey(
-  "5BUwFW4nRbftYTDMbgxykoFWqWHPzahFSNAaaaJtVKsq",
-);
-
+// The `positionRequest` PDA holds the requests for all the perpetuals actions. Once the `positionRequest`
+// is submitted on chain, the keeper(s) will pick them up and execute the requests (hence the request
+// fulfillment model)
+//
+// https://station.jup.ag/guides/perpetual-exchange/onchain-accounts#positionrequest-account
 export function generatePositionRequestPda({
   counter,
   positionPubkey,
@@ -24,10 +26,6 @@ export function generatePositionRequestPda({
   }
 
   const requestChangeEnum = requestChange === "increase" ? [1] : [2];
-
-  // The `positionRequest` PDA holds the requests for all the perpetuals actions. Once the `positionRequest`
-  // is submitted on chain, the keeper(s) will pick them up and execute the requests (hence the request
-  // fulfillment model)
   const [positionRequest, bump] = PublicKey.findProgramAddressSync(
     [
       Buffer.from("position_request"),
@@ -35,12 +33,14 @@ export function generatePositionRequestPda({
       counter.toArrayLike(Buffer, "le", 8),
       Buffer.from(requestChangeEnum),
     ],
-    JUPITER_PERPS_PROGRAM_ID,
+    JUPITER_PERPETUALS_PROGRAM_ID,
   );
 
   return { positionRequest, counter, bump };
 }
 
+// The `Position` PDA stores the position data for a trader's positions (both open and closed).
+// https://station.jup.ag/guides/perpetual-exchange/onchain-accounts#position-account
 export function generatePositionPda({
   custody,
   collateralCustody,
@@ -56,13 +56,13 @@ export function generatePositionPda({
     [
       Buffer.from("position"),
       walletAddress.toBuffer(),
-      JUPITER_PERPS_POOL_ADDRESS.toBuffer(),
+      JLP_POOL_ACCOUNT_PUBKEY.toBuffer(),
       custody.toBuffer(),
       collateralCustody.toBuffer(),
       // @ts-ignore
-      side === "long" ? [1] : [2],
+      side === "long" ? [1] : [2], // This is due to how the `Side` enum is structured in the contract
     ],
-    JUPITER_PERPS_PROGRAM_ID,
+    JUPITER_PERPETUALS_PROGRAM_ID,
   );
 
   return { position, bump };
