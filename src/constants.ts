@@ -1,10 +1,4 @@
-import {
-  AnchorProvider,
-  Program,
-  Wallet,
-  utils,
-  type IdlAccounts,
-} from "@coral-xyz/anchor";
+import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
 import { IDL, type Perpetuals } from "./idl/jupiter-perpetuals-idl";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 
@@ -24,6 +18,10 @@ export const JLP_POOL_ACCOUNT_PUBKEY = new PublicKey(
   "5BUwFW4nRbftYTDMbgxykoFWqWHPzahFSNAaaaJtVKsq",
 );
 
+export const JLP_MINT_PUBKEY = new PublicKey(
+  "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4",
+);
+
 export const JUPITER_PERPETUALS_PROGRAM = new Program<Perpetuals>(
   IDL,
   JUPITER_PERPETUALS_PROGRAM_ID,
@@ -41,3 +39,13 @@ export enum CUSTODY_PUBKEY {
   USDC = "G18jKKXQwBbrHeiK3C9MRXhkHsLHf7XgCSisykV46EZa",
   USDT = "4vkNeXiYEUizLdrpdPS1eC2mccyM4NUPRtERrk6ZETkk",
 }
+
+export const CUSTODY_PUBKEYS = [
+  new PublicKey(CUSTODY_PUBKEY.SOL),
+  new PublicKey(CUSTODY_PUBKEY.BTC),
+  new PublicKey(CUSTODY_PUBKEY.ETH),
+  new PublicKey(CUSTODY_PUBKEY.USDC),
+  new PublicKey(CUSTODY_PUBKEY.USDT),
+];
+
+export const USDC_DECIMALS = 6;

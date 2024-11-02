@@ -2,6 +2,7 @@ import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, BN, Program, Wallet } from "@coral-xyz/anchor";
 import { IDL as DovesIDL } from "../idl/doves-idl";
 import { CUSTODY_PUBKEY } from "../constants";
+import { BNToUSDRepresentation } from "../utils";
 
 /* Constants */
 
@@ -82,22 +83,6 @@ interface DovesOraclePrice {
 type CustodyToOraclePrice = Record<string, DovesOraclePrice>;
 
 /* Functions */
-
-// Helper function to format `bn` values into the string USD representation
-function BNToUSDRepresentation(
-  value: BN,
-  exponent: number = 8,
-  displayDecimals: number = 2,
-): string {
-  const quotient = value.divn(Math.pow(10, exponent - displayDecimals));
-  const usd = Number(quotient) / Math.pow(10, displayDecimals);
-
-  return usd.toLocaleString("en-US", {
-    maximumFractionDigits: displayDecimals,
-    minimumFractionDigits: displayDecimals,
-    useGrouping: false,
-  });
-}
 
 async function fetchAndUpdateOraclePriceData(cache: CustodyToOraclePrice) {
   const dovesPubkey = DOVES_ORACLES.map(({ publicKey }) => publicKey);
