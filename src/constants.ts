@@ -1,4 +1,4 @@
-import { AnchorProvider, Program, Wallet } from "@coral-xyz/anchor";
+import { AnchorProvider, BN, Program, Wallet } from "@coral-xyz/anchor";
 import { IDL, type Perpetuals } from "./idl/jupiter-perpetuals-idl";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 
@@ -49,3 +49,6 @@ export const CUSTODY_PUBKEYS = [
 ];
 
 export const USDC_DECIMALS = 6;
+export const BPS_POWER = new BN(10_000);
+export const DBPS_POWER = new BN(100_000);
+export const RATE_POWER = new BN(1_000_000_000);
