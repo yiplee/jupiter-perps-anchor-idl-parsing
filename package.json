@@ -4,7 +4,7 @@
   "description": "A sample project to work with the Jupiter Perps IDL with Anchor",
   "main": "dist/index.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only index.ts"
+    "script": "ts-node-dev --respawn --transpile-only"
   },
   "keywords": [
     "typescript",
