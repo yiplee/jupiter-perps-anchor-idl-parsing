@@ -15,3 +15,11 @@ export function BNToUSDRepresentation(
     useGrouping: false,
   });
 }
+
+export const divCeil = (a: BN, b: BN) => {
+  var dm = a.divmod(b);
+  // Fast case - exact division
+  if (dm.mod.isZero()) return dm.div;
+  // Round up
+  return dm.div.ltn(0) ? dm.div.isubn(1) : dm.div.iaddn(1);
+};
