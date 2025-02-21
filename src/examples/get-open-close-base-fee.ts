@@ -16,7 +16,7 @@ export async function getOpenCloseBaseFee(
 
   const baseFeeBps = custody.increasePositionBps;
   // Use `decreasePositionBps` for close position or withdraw collateral trades
-  // const baseFeeBps = pool.fees.decreasePositionBps;
+  // const baseFeeBps = custody.decreasePositionBps;
 
   const feeUsd = tradeSizeUsd.mul(baseFeeBps).div(BPS_POWER);
 
