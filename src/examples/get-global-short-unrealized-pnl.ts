@@ -77,7 +77,7 @@ export async function getGlobalShortUnrealizedPnl() {
   );
 }
 
-export async function getGlobalLongUnrealizedPnlEstimate() {
+export async function getGlobalShortUnrealizedPnlEstimate() {
   const custodies = await JUPITER_PERPETUALS_PROGRAM.account.custody.all();
 
   let totalPnl = new BN(0);
