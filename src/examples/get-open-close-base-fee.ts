@@ -1,18 +1,20 @@
 import { BN } from "@coral-xyz/anchor";
 import {
   BPS_POWER,
-  JLP_POOL_ACCOUNT_PUBKEY,
   JUPITER_PERPETUALS_PROGRAM,
   USDC_DECIMALS,
 } from "../constants";
 import { BNToUSDRepresentation } from "../utils";
+import { PublicKey } from "@solana/web3.js";
 
-export async function getOpenCloseBaseFee(tradeSizeUsd: BN) {
-  const pool = await JUPITER_PERPETUALS_PROGRAM.account.pool.fetch(
-    JLP_POOL_ACCOUNT_PUBKEY,
-  );
+export async function getOpenCloseBaseFee(
+  tradeSizeUsd: BN,
+  custodyPubkey: PublicKey | string,
+) {
+  const custody =
+    await JUPITER_PERPETUALS_PROGRAM.account.custody.fetch(custodyPubkey);
 
-  const baseFeeBps = pool.fees.increasePositionBps;
+  const baseFeeBps = custody.increasePositionBps;
   // Use `decreasePositionBps` for close position or withdraw collateral trades
   // const baseFeeBps = pool.fees.decreasePositionBps;
 
