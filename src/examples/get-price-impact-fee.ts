@@ -1,6 +1,7 @@
 import { BN } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import { BPS_POWER, JUPITER_PERPETUALS_PROGRAM } from "../constants";
+import { divCeil } from "../utils";
 
 export async function getPriceImpactFee(
   tradeSizeUsd: BN,
@@ -9,9 +10,10 @@ export async function getPriceImpactFee(
   const custody =
     await JUPITER_PERPETUALS_PROGRAM.account.custody.fetch(custodyPubkey);
 
-  const priceImpactFeeBps = tradeSizeUsd
-    .mul(BPS_POWER)
-    .div(custody.pricing.tradeImpactFeeScalar);
+  const priceImpactFeeBps = divCeil(
+    tradeSizeUsd.mul(BPS_POWER),
+    custody.pricing.tradeImpactFeeScalar,
+  );
 
   const priceImpactFeeUsd = tradeSizeUsd.mul(priceImpactFeeBps).div(BPS_POWER);
 
