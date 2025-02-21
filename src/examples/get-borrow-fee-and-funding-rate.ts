@@ -39,7 +39,7 @@ export const getBorrowFee = async (
 
 export const getCumulativeInterest = (custody: Custody, curtime: BN) => {
   if (curtime.gt(custody.fundingRateState.lastUpdate)) {
-    const fundingRate = getCurrentFundingRate(custody, curtime);
+    const fundingRate = getFundingRate(custody, curtime);
     return custody.fundingRateState.cumulativeInterestRate.add(fundingRate);
   } else {
     return custody.fundingRateState.cumulativeInterestRate;
@@ -87,7 +87,7 @@ export function getBorrowRatePct(custody: Custody): number {
   );
 }
 
-export const getCurrentFundingRate = (custody: Custody, curtime: BN) => {
+export const getFundingRate = (custody: Custody, curtime: BN) => {
   if (custody.assets.owned.eqn(0)) return new BN(0);
 
   const interval = curtime.sub(custody.fundingRateState.lastUpdate);
