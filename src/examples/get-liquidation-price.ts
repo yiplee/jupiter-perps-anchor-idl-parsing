@@ -1,7 +1,6 @@
 import { PublicKey } from "@solana/web3.js";
 import {
   BPS_POWER,
-  JLP_POOL_ACCOUNT_PUBKEY,
   JUPITER_PERPETUALS_PROGRAM,
   RATE_POWER,
   USDC_DECIMALS,
@@ -9,10 +8,6 @@ import {
 import { BNToUSDRepresentation } from "../utils";
 
 export async function getLiquidationPrice(positionPubkey: PublicKey) {
-  const pool = await JUPITER_PERPETUALS_PROGRAM.account.pool.fetch(
-    JLP_POOL_ACCOUNT_PUBKEY,
-  );
-
   const position =
     await JUPITER_PERPETUALS_PROGRAM.account.position.fetch(positionPubkey);
 
@@ -28,7 +23,7 @@ export async function getLiquidationPrice(positionPubkey: PublicKey) {
   const priceImpactFeeBps = position.sizeUsd
     .mul(BPS_POWER)
     .div(custody.pricing.tradeImpactFeeScalar);
-  const baseFeeBps = pool.fees.decreasePositionBps;
+  const baseFeeBps = custody.decreasePositionBps;
   const totalFeeBps = baseFeeBps.add(priceImpactFeeBps);
 
   const closeFeeUsd = position.sizeUsd.mul(totalFeeBps).div(BPS_POWER);
