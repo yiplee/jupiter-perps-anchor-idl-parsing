@@ -1,9 +1,16 @@
-import { DISCRIMINATOR_SIZE, utils } from "@coral-xyz/anchor";
+import { DISCRIMINATOR_SIZE, IdlEvents, utils } from "@coral-xyz/anchor";
 import {
   JUPITER_PERPETUALS_EVENT_AUTHORITY_PUBKEY,
   JUPITER_PERPETUALS_PROGRAM,
   RPC_CONNECTION,
 } from "../constants";
+import { type Perpetuals } from "../idl/jupiter-perpetuals-idl";
+import { PublicKey } from "@solana/web3.js";
+
+type AnchorIdlEvent<EventName extends keyof IdlEvents<Perpetuals>> = {
+  name: EventName;
+  data: IdlEvents<Perpetuals>[EventName];
+};
 
 // The Jupiter Perpetuals program emits events (via Anchor's CPI events: https://book.anchor-lang.com/anchor_in_depth/events.html)
 // for most trade events. These events can be parsed and analyzed to track things like trades, executed TPSL requests, liquidations
@@ -46,10 +53,26 @@ export async function getPerpetualsEvents() {
     });
   });
 
-  // This is an example of filtering the `allEvents` array to only return close position request events
+  // This is an example of filtering the `allEvents` array to only return increase position request events
   // The full list of event names and types can be found in the `jupiter-perpetuals-idl.ts` file under the
   // `events` key
-  const closePositionRequestEvents = allEvents.filter(
-    (data) => data?.event?.name === "ClosePositionRequestEvent",
+  const increasePositionEvents = allEvents.filter(
+    (data) =>
+      data?.event?.name === "IncreasePositionEvent" ||
+      data?.event?.name === "InstantIncreasePositionEvent",
   );
+
+  // Example to filter increase position events for a given wallet address
+  const walletAddress = new PublicKey("WALLET_ADDRESS");
+  increasePositionEvents.filter((data) => {
+    if (data) {
+      const event = data.event as AnchorIdlEvent<
+        "InstantIncreasePositionEvent" | "IncreasePositionEvent"
+      >;
+
+      return event.data.owner.equals(walletAddress);
+    }
+
+    return false;
+  });
 }
