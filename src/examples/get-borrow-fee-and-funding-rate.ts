@@ -2,6 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 import { BN } from "@coral-xyz/anchor";
 import {
   BPS_POWER,
+  DBPS_POWER,
   JUPITER_PERPETUALS_PROGRAM,
   RATE_POWER,
   USDC_DECIMALS,
@@ -10,6 +11,11 @@ import { BNToUSDRepresentation, divCeil } from "../utils";
 import { Custody } from "../types";
 
 const HOURS_IN_A_YEAR = 24 * 365;
+
+enum BorrowRateMechanism {
+  Linear,
+  Jump,
+}
 
 export const getBorrowFee = async (
   positionPubkey: PublicKey | string,
@@ -37,9 +43,17 @@ export const getBorrowFee = async (
   );
 };
 
+export function getBorrowRateMechanism(custody: Custody) {
+  if (!custody.fundingRateState.hourlyFundingDbps.eq(new BN(0))) {
+    return BorrowRateMechanism.Linear;
+  } else {
+    return BorrowRateMechanism.Jump;
+  }
+}
+
 export const getCumulativeInterest = (custody: Custody, curtime: BN) => {
   if (curtime.gt(custody.fundingRateState.lastUpdate)) {
-    const fundingRate = getFundingRate(custody, curtime);
+    const fundingRate = getCurrentFundingRate(custody, curtime);
     return custody.fundingRateState.cumulativeInterestRate.add(fundingRate);
   } else {
     return custody.fundingRateState.cumulativeInterestRate;
@@ -47,47 +61,56 @@ export const getCumulativeInterest = (custody: Custody, curtime: BN) => {
 };
 
 export const getHourlyBorrowRate = (custody: Custody) => {
-  const { minRateBps, maxRateBps, targetRateBps, targetUtilizationRate } =
-    custody.jumpRateState;
+  const borrowRateMechanism = getBorrowRateMechanism(custody);
 
-  const utilizationRate =
-    custody.assets.owned.gtn(0) && custody.assets.locked.gtn(0)
-      ? custody.assets.locked.mul(RATE_POWER).div(custody.assets.owned)
+  if (borrowRateMechanism === BorrowRateMechanism.Linear) {
+    const hourlyFundingRate = custody.fundingRateState.hourlyFundingDbps
+      .mul(RATE_POWER)
+      .div(DBPS_POWER);
+
+    return custody.assets.owned.gtn(0) && custody.assets.locked.gtn(0)
+      ? divCeil(
+          custody.assets.locked.mul(hourlyFundingRate),
+          custody.assets.owned,
+        )
       : new BN(0);
-
-  let yearlyRate: BN;
-
-  if (utilizationRate.lte(targetUtilizationRate)) {
-    yearlyRate = targetRateBps
-      .sub(minRateBps)
-      .mul(utilizationRate)
-      .div(targetUtilizationRate)
-      .add(minRateBps)
-      .mul(RATE_POWER)
-      .div(BPS_POWER);
   } else {
-    const rateDiff = maxRateBps.sub(targetRateBps);
-    const utilDiff = utilizationRate.sub(targetUtilizationRate);
-    const denom = RATE_POWER.sub(targetUtilizationRate);
+    const { minRateBps, maxRateBps, targetRateBps, targetUtilizationRate } =
+      custody.jumpRateState;
 
-    yearlyRate = rateDiff
-      .mul(utilDiff)
-      .div(denom)
-      .add(targetRateBps)
-      .mul(RATE_POWER)
-      .div(BPS_POWER);
+    const utilizationRate =
+      custody.assets.owned.gtn(0) && custody.assets.locked.gtn(0)
+        ? custody.assets.locked.mul(RATE_POWER).div(custody.assets.owned)
+        : new BN(0);
+
+    let yearlyRate: BN;
+
+    if (utilizationRate.lte(targetUtilizationRate)) {
+      yearlyRate = targetRateBps
+        .sub(minRateBps)
+        .mul(utilizationRate)
+        .div(targetUtilizationRate)
+        .add(minRateBps)
+        .mul(RATE_POWER)
+        .div(BPS_POWER);
+    } else {
+      const rateDiff = maxRateBps.sub(targetRateBps);
+      const utilDiff = utilizationRate.sub(targetUtilizationRate);
+      const denom = RATE_POWER.sub(targetUtilizationRate);
+
+      yearlyRate = rateDiff
+        .mul(utilDiff)
+        .div(denom)
+        .add(targetRateBps)
+        .mul(RATE_POWER)
+        .div(BPS_POWER);
+    }
+
+    return yearlyRate.divn(HOURS_IN_A_YEAR);
   }
-
-  return yearlyRate.divn(HOURS_IN_A_YEAR);
 };
 
-export function getBorrowRatePct(custody: Custody): number {
-  return (
-    getHourlyBorrowRate(custody).muln(100).toNumber() / RATE_POWER.toNumber()
-  );
-}
-
-export const getFundingRate = (custody: Custody, curtime: BN) => {
+export const getCurrentFundingRate = (custody: Custody, curtime: BN) => {
   if (custody.assets.owned.eqn(0)) return new BN(0);
 
   const interval = curtime.sub(custody.fundingRateState.lastUpdate);
