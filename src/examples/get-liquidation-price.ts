@@ -1,3 +1,4 @@
+import { BN } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import {
   BPS_POWER,
@@ -6,6 +7,14 @@ import {
   USDC_DECIMALS,
 } from "../constants";
 import { BNToUSDRepresentation } from "../utils";
+
+export const divCeil = (a: BN, b: BN) => {
+  var dm = a.divmod(b);
+  // Fast case - exact division
+  if (dm.mod.isZero()) return dm.div;
+  // Round up
+  return dm.div.ltn(0) ? dm.div.isubn(1) : dm.div.iaddn(1);
+};
 
 export async function getLiquidationPrice(positionPubkey: PublicKey) {
   const position =
@@ -20,9 +29,10 @@ export async function getLiquidationPrice(positionPubkey: PublicKey) {
       position.collateralCustody,
     );
 
-  const priceImpactFeeBps = position.sizeUsd
-    .mul(BPS_POWER)
-    .div(custody.pricing.tradeImpactFeeScalar);
+  const priceImpactFeeBps = divCeil(
+    position.sizeUsd.mul(BPS_POWER),
+    custody.pricing.tradeImpactFeeScalar,
+  );
   const baseFeeBps = custody.decreasePositionBps;
   const totalFeeBps = baseFeeBps.add(priceImpactFeeBps);
 
