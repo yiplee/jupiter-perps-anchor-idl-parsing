@@ -13,3 +13,4 @@ export type CustodyAccount = ProgramAccount<Custody>;
 export type ContractTypes = IdlTypes<Perpetuals>;
 export type Pool = IdlAccounts<Perpetuals>["pool"];
 export type PoolApr = ContractTypes["PoolApr"];
+export type OraclePrice = IdlTypes<Perpetuals>["OraclePrice"];
