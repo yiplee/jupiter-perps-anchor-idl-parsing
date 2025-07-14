@@ -3,6 +3,7 @@ import { BN } from "@coral-xyz/anchor";
 import {
   BPS_POWER,
   DBPS_POWER,
+  DEBT_POWER,
   JUPITER_PERPETUALS_PROGRAM,
   RATE_POWER,
   USDC_DECIMALS,
@@ -60,47 +61,72 @@ export const getCumulativeInterest = (custody: Custody, curtime: BN) => {
   }
 };
 
-export const getHourlyBorrowRate = (custody: Custody) => {
+export function getDebt(custody: Custody) {
+  return divCeil(
+    BN.max(custody.debt.sub(custody.borrowLendInterestsAccured), new BN(0)),
+    DEBT_POWER,
+  );
+}
+
+export function theoreticallyOwned(custody: Custody) {
+  return custody.assets.owned.add(getDebt(custody));
+}
+
+export function totalLocked(custody: Custody) {
+  return custody.assets.locked.add(getDebt(custody));
+}
+
+export const getHourlyBorrowRate = (
+  custody: Custody,
+  isBorrowCurve = false,
+) => {
   const borrowRateMechanism = getBorrowRateMechanism(custody);
+  const owned = theoreticallyOwned(custody);
+  const locked = totalLocked(custody);
 
   if (borrowRateMechanism === BorrowRateMechanism.Linear) {
-    const hourlyFundingRate = custody.fundingRateState.hourlyFundingDbps
+    const fundingRateState = isBorrowCurve
+      ? custody.borrowsFundingRateState
+      : custody.fundingRateState;
+    const hourlyFundingRate = fundingRateState.hourlyFundingDbps
       .mul(RATE_POWER)
       .div(DBPS_POWER);
 
-    return custody.assets.owned.gtn(0) && custody.assets.locked.gtn(0)
-      ? divCeil(
-          custody.assets.locked.mul(hourlyFundingRate),
-          custody.assets.owned,
-        )
+    return owned.gtn(0) && locked.gtn(0)
+      ? divCeil(locked.mul(hourlyFundingRate), owned)
       : new BN(0);
   } else {
     const { minRateBps, maxRateBps, targetRateBps, targetUtilizationRate } =
       custody.jumpRateState;
 
     const utilizationRate =
-      custody.assets.owned.gtn(0) && custody.assets.locked.gtn(0)
-        ? custody.assets.locked.mul(RATE_POWER).div(custody.assets.owned)
+      owned.gtn(0) && locked.gtn(0)
+        ? locked.mul(RATE_POWER).div(owned)
         : new BN(0);
 
     let yearlyRate: BN;
 
     if (utilizationRate.lte(targetUtilizationRate)) {
-      yearlyRate = targetRateBps
-        .sub(minRateBps)
-        .mul(utilizationRate)
-        .div(targetUtilizationRate)
+      yearlyRate = divCeil(
+        targetRateBps.sub(minRateBps).mul(utilizationRate),
+        targetUtilizationRate,
+      )
         .add(minRateBps)
         .mul(RATE_POWER)
         .div(BPS_POWER);
     } else {
-      const rateDiff = maxRateBps.sub(targetRateBps);
-      const utilDiff = utilizationRate.sub(targetUtilizationRate);
-      const denom = RATE_POWER.sub(targetUtilizationRate);
+      const rateDiff = BN.max(new BN(0), maxRateBps.sub(targetRateBps));
+      const utilDiff = BN.max(
+        new BN(0),
+        utilizationRate.sub(targetUtilizationRate),
+      );
+      const denom = BN.max(new BN(0), RATE_POWER.sub(targetUtilizationRate));
 
-      yearlyRate = rateDiff
-        .mul(utilDiff)
-        .div(denom)
+      if (denom.eqn(0)) {
+        throw new Error("Denominator is 0");
+      }
+
+      yearlyRate = divCeil(rateDiff.mul(utilDiff), denom)
         .add(targetRateBps)
         .mul(RATE_POWER)
         .div(BPS_POWER);
@@ -108,6 +134,15 @@ export const getHourlyBorrowRate = (custody: Custody) => {
 
     return yearlyRate.divn(HOURS_IN_A_YEAR);
   }
+};
+
+// Returns the borrow APR for the year for a given custody
+export const getBorrowApr = (custody: Custody) => {
+  return (
+    (getHourlyBorrowRate(custody, true).toNumber() / RATE_POWER.toNumber()) *
+    (24 * 365) *
+    100
+  );
 };
 
 export const getCurrentFundingRate = (custody: Custody, curtime: BN) => {
