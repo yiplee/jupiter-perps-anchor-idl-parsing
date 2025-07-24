@@ -1,9 +1,14 @@
 import { AnchorProvider, BN, Program, Wallet } from "@coral-xyz/anchor";
 import { IDL, type Perpetuals } from "./idl/jupiter-perpetuals-idl";
+import { IDL as DovesIDL, type Doves } from "./idl/doves-idl";
 import { Connection, Keypair, PublicKey } from "@solana/web3.js";
 
 export const RPC_CONNECTION = new Connection(
   process.env.RPC_URL || "https://api.mainnet-beta.solana.com",
+);
+
+export const DOVES_PROGRAM_ID = new PublicKey(
+  "DoVEsk76QybCEHQGzkvYPWLQu9gzNoZZZt3TPiL597e",
 );
 
 export const JUPITER_PERPETUALS_PROGRAM_ID = new PublicKey(
@@ -20,6 +25,16 @@ export const JLP_POOL_ACCOUNT_PUBKEY = new PublicKey(
 
 export const JLP_MINT_PUBKEY = new PublicKey(
   "27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4",
+);
+
+export const DOVES_PROGRAM = new Program<Doves>(
+  DovesIDL,
+  DOVES_PROGRAM_ID,
+  new AnchorProvider(
+    RPC_CONNECTION,
+    new Wallet(Keypair.generate()),
+    AnchorProvider.defaultOptions(),
+  ),
 );
 
 export const JUPITER_PERPETUALS_PROGRAM = new Program<Perpetuals>(
@@ -53,3 +68,5 @@ export const BPS_POWER = new BN(10_000);
 export const DBPS_POWER = new BN(100_000);
 export const RATE_POWER = new BN(1_000_000_000);
 export const DEBT_POWER = RATE_POWER;
+export const BORROW_SIZE_PRECISION = new BN(1000);
+export const JLP_DECIMALS = 6;
