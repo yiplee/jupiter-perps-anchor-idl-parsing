@@ -3340,6 +3340,10 @@ export type Perpetuals = {
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "lastBorrowed",
+            "type": "i64"
           }
         ]
       }
@@ -3462,6 +3466,18 @@ export type Perpetuals = {
           {
             "name": "borrowLendInterestsAccured",
             "type": "u128"
+          },
+          {
+            "name": "borrowLimitInTokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeGracePeriodSeconds",
+            "type": "u64"
           }
         ]
       }
@@ -3560,6 +3576,10 @@ export type Perpetuals = {
             "type": {
               "defined": "Secp256k1Pubkey"
             }
+          },
+          {
+            "name": "aumUsdUpdatedAt",
+            "type": "i64"
           }
         ]
       }
@@ -4457,6 +4477,18 @@ export type Perpetuals = {
           {
             "name": "borrowHourlyFundingDbps",
             "type": "u64"
+          },
+          {
+            "name": "borrowLimitInTokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeGracePeriodSeconds",
+            "type": "u64"
           }
         ]
       }
@@ -4601,6 +4633,18 @@ export type Perpetuals = {
           },
           {
             "name": "borrowHourlyFundingDbps",
+            "type": "u64"
+          },
+          {
+            "name": "borrowLimitInTokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeGracePeriodSeconds",
             "type": "u64"
           }
         ]
@@ -10538,6 +10582,10 @@ export const IDL: Perpetuals = {
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "lastBorrowed",
+            "type": "i64"
           }
         ]
       }
@@ -10660,6 +10708,18 @@ export const IDL: Perpetuals = {
           {
             "name": "borrowLendInterestsAccured",
             "type": "u128"
+          },
+          {
+            "name": "borrowLimitInTokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeGracePeriodSeconds",
+            "type": "u64"
           }
         ]
       }
@@ -10758,6 +10818,10 @@ export const IDL: Perpetuals = {
             "type": {
               "defined": "Secp256k1Pubkey"
             }
+          },
+          {
+            "name": "aumUsdUpdatedAt",
+            "type": "i64"
           }
         ]
       }
@@ -11655,6 +11719,18 @@ export const IDL: Perpetuals = {
           {
             "name": "borrowHourlyFundingDbps",
             "type": "u64"
+          },
+          {
+            "name": "borrowLimitInTokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeGracePeriodSeconds",
+            "type": "u64"
           }
         ]
       }
@@ -11799,6 +11875,18 @@ export const IDL: Perpetuals = {
           },
           {
             "name": "borrowHourlyFundingDbps",
+            "type": "u64"
+          },
+          {
+            "name": "borrowLimitInTokenAmount",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeBps",
+            "type": "u64"
+          },
+          {
+            "name": "minInterestFeeGracePeriodSeconds",
             "type": "u64"
           }
         ]
