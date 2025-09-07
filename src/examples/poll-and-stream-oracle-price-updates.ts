@@ -9,7 +9,7 @@ import { BNToUSDRepresentation } from "../utils";
 const connection = new Connection("https://api.mainnet-beta.solana.com");
 
 const DOVES_PROGRAM_ID = new PublicKey(
-  "DoVEsk76QybCEHQGzkvYPWLQu9gzNoZZZt3TPiL597e",
+  "DoVEsk76QybCEHQGzkvYPWLQu9gzNoZZZt3TPiL597e"
 );
 
 const dovesProgram = new Program(
@@ -17,10 +17,10 @@ const dovesProgram = new Program(
   DOVES_PROGRAM_ID,
   new AnchorProvider(connection, new Wallet(Keypair.generate()), {
     preflightCommitment: "processed",
-  }),
+  })
 );
 
-const CUSTODY_DETAILS = {
+export const CUSTODY_DETAILS = {
   [CUSTODY_PUBKEY.SOL]: {
     mint: new PublicKey("So11111111111111111111111111111111111111112"),
     dovesOracle: new PublicKey("39cWjvHrpHNz2SbXv6ME4NPhqBDBd4KsjUYv5JkHEAJU"),
@@ -84,7 +84,9 @@ type CustodyToOraclePrice = Record<string, DovesOraclePrice>;
 
 /* Functions */
 
-async function fetchAndUpdateOraclePriceData(cache: CustodyToOraclePrice) {
+export async function fetchAndUpdateOraclePriceData(
+  cache: CustodyToOraclePrice
+) {
   const dovesPubkey = DOVES_ORACLES.map(({ publicKey }) => publicKey);
   const feeds = await dovesProgram.account.priceFeed.fetchMultiple(dovesPubkey);
 
@@ -93,7 +95,7 @@ async function fetchAndUpdateOraclePriceData(cache: CustodyToOraclePrice) {
 
     if (!feed) {
       throw new Error(
-        `Failed to fetch latest oracle price data for: ${custody.toString()}`,
+        `Failed to fetch latest oracle price data for: ${custody.toString()}`
       );
     }
 
@@ -143,25 +145,25 @@ export async function subscribeOraclePrices(intervalMs: number = 100) {
     DOVES_PROGRAM_ID,
     ({ accountId, accountInfo }) => {
       const oracle = DOVES_ORACLES.find((oracle) =>
-        oracle.publicKey.equals(accountId),
+        oracle.publicKey.equals(accountId)
       );
 
       if (!oracle) {
         throw new Error(
-          `Cannot find custody details for account: ${accountId.toString()}`,
+          `Cannot find custody details for account: ${accountId.toString()}`
         );
       }
 
       const priceFeed = dovesProgram.coder.accounts.decode(
         "priceFeed",
-        accountInfo.data,
+        accountInfo.data
       );
 
       const data: DovesOraclePrice = {
         price: priceFeed.price,
         priceUsd: BNToUSDRepresentation(
           priceFeed.price,
-          Math.abs(priceFeed.expo),
+          Math.abs(priceFeed.expo)
         ),
         timestamp: priceFeed.timestamp.toNumber(),
         expo: priceFeed.expo,
@@ -169,10 +171,8 @@ export async function subscribeOraclePrices(intervalMs: number = 100) {
 
       cache[oracle.custody.toString()] = data;
     },
-    { commitment: "confirmed" },
+    { commitment: "confirmed" }
   );
 
   return cache;
 }
-
-subscribeOraclePrices();
