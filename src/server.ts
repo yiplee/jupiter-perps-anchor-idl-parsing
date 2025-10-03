@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { BN } from '@coral-xyz/anchor';
 import { getJLPView } from './jlp';
 import { BNToUSDRepresentation } from './utils';
 import { USDC_DECIMALS, JLP_DECIMALS } from './constants';
@@ -13,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 // Helper function to serialize CustodyView for JSON response
-function serializeCustodyView(custodyView: CustodyView) {
+function serializeCustodyView(custodyView: CustodyView, shares: BN) {
     return {
         ...custodyView,
         pubkey: custodyView.pubkey.toString(),
@@ -27,16 +28,20 @@ function serializeCustodyView(custodyView: CustodyView) {
         globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
+        position: BNToUSDRepresentation(shares.mul(custodyView.netAmount), custodyView.decimals, 8),
     };
 }
 
 // Helper function to serialize JLPView for JSON response
-function serializeJLPView(jlpView: JLPView) {
+function serializeJLPView(jlpView: JLPView, jlpAmount: BN) {
+    const shares = jlpAmount.div(jlpView.supply) as BN;
     return {
+        jlpAmount: BNToUSDRepresentation(jlpAmount, JLP_DECIMALS),
         supply: BNToUSDRepresentation(jlpView.supply, JLP_DECIMALS),
+        shares: Number(shares).toFixed(16),
         price: BNToUSDRepresentation(jlpView.price, USDC_DECIMALS, 4),
         totalAumUsd: BNToUSDRepresentation(jlpView.totalAumUsd, USDC_DECIMALS),
-        custodyViews: jlpView.custodyViews.map(serializeCustodyView),
+        custodyViews: jlpView.custodyViews.map(custodyView => serializeCustodyView(custodyView, shares)),
     };
 }
 
@@ -54,7 +59,26 @@ app.get('/api/jlp-info', async (req: Request, res: Response) => {
     try {
         console.log('Fetching JLP info...');
         const jlpView = await getJLPView();
-        const serializedResponse = serializeJLPView(jlpView);
+
+        // Read JLP amount from query and convert to BN, default to 0
+        let jlpAmount: BN;
+        if (req.query.amount) {
+            try {
+                jlpAmount = new BN(req.query.amount as string);
+            } catch (error) {
+                return res.status(400).json({
+                    success: false,
+                    error: 'Invalid amount parameter. Must be a valid number.',
+                    timestamp: new Date().toISOString()
+                });
+            }
+        } else {
+            jlpAmount = new BN(0);
+        }
+
+        // scale with jlp decimals
+        jlpAmount = jlpAmount.muln(Math.pow(10, JLP_DECIMALS));
+        const serializedResponse = serializeJLPView(jlpView, jlpAmount);
 
         res.json({
             success: true,
