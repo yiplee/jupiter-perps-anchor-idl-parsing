@@ -14,7 +14,18 @@ app.use(cors());
 app.use(express.json());
 
 // Helper function to serialize CustodyView for JSON response
-function serializeCustodyView(custodyView: CustodyView, shares: BN) {
+function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: BN) {
+    let holderPosition = new BN(0);
+    let shortPosition = new BN(0);
+
+    if (!custodyView.isStable) {
+        holderPosition = jplAmount.mul(custodyView.netAmount).div(supply);
+
+        if (custodyView.globalShortSizes.gt(0)) {
+            shortPosition = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, USDC_DECIMALS)).mul(jplAmount).div(supply);
+        }
+    }
+
     return {
         ...custodyView,
         pubkey: custodyView.pubkey.toString(),
@@ -28,20 +39,19 @@ function serializeCustodyView(custodyView: CustodyView, shares: BN) {
         globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
-        position: BNToUSDRepresentation(shares.mul(custodyView.netAmount), custodyView.decimals, 8),
+        holderPosition: BNToUSDRepresentation(holderPosition, custodyView.decimals),
+        shortPosition: BNToUSDRepresentation(shortPosition, USDC_DECIMALS),
     };
 }
 
 // Helper function to serialize JLPView for JSON response
 function serializeJLPView(jlpView: JLPView, jlpAmount: BN) {
-    const shares = jlpAmount.div(jlpView.supply) as BN;
     return {
         jlpAmount: BNToUSDRepresentation(jlpAmount, JLP_DECIMALS),
         supply: BNToUSDRepresentation(jlpView.supply, JLP_DECIMALS),
-        shares: Number(shares).toFixed(16),
         price: BNToUSDRepresentation(jlpView.price, USDC_DECIMALS, 4),
         totalAumUsd: BNToUSDRepresentation(jlpView.totalAumUsd, USDC_DECIMALS),
-        custodyViews: jlpView.custodyViews.map(custodyView => serializeCustodyView(custodyView, shares)),
+        custodies: jlpView.custodyViews.map(custodyView => serializeCustodyView(custodyView, jlpAmount, jlpView.supply)),
     };
 }
 
