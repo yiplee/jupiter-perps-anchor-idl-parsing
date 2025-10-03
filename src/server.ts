@@ -17,16 +17,16 @@ app.use(express.json());
 function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: BN) {
     let hedgedPosition: BN = new BN(0);
     if (!custodyView.isStable) {
-        hedgedPosition = custodyView.netAmount.div(Math.pow(10, custodyView.decimals))
+        hedgedPosition = custodyView.netAmount
 
         if (custodyView.globalShortSizes.gt(0)) {
-            const amount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices)
+            const amount: BN = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).shln(custodyView.decimals)
             hedgedPosition = hedgedPosition.add(amount)
         }
     }
 
     // normalize to jlp amount
-    hedgedPosition = hedgedPosition.mul(jplAmount).div(supply);
+    hedgedPosition = hedgedPosition.mul(jplAmount).div(supply)
 
     return {
         ...custodyView,
@@ -41,7 +41,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
-        hedgedPosition: Number(hedgedPosition).toFixed(custodyView.decimals),
+        hedgedPosition: BNToUSDRepresentation(hedgedPosition, custodyView.decimals),
     };
 }
 
@@ -89,10 +89,7 @@ app.get('/api/jlp-info', async (req: Request, res: Response) => {
 
         // scale with jlp decimals
         const jlpMultiplier = Math.pow(10, JLP_DECIMALS);
-        console.log('Debug - JLP_DECIMALS:', JLP_DECIMALS);
-        console.log('Debug - jlpMultiplier:', jlpMultiplier);
-        console.log('Debug - jlpMultiplier isInteger:', Number.isInteger(jlpMultiplier));
-        jlpAmount = jlpAmount.muln(Math.floor(jlpMultiplier));
+        jlpAmount = jlpAmount.muln(jlpMultiplier);
         const serializedResponse = serializeJLPView(jlpView, jlpAmount);
 
         res.json({
