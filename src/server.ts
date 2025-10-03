@@ -20,7 +20,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         hedgedPosition = hedgedPosition.add(custodyView.netAmount)
 
         if (custodyView.globalShortSizes.gt(0)) {
-            const amount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, custodyView.decimals))
+            const amount = custodyView.globalShortSizes.muln(Math.pow(10, custodyView.decimals)).div(custodyView.globalShortAveragePrices)
             hedgedPosition = hedgedPosition.add(amount)
         }
     }
