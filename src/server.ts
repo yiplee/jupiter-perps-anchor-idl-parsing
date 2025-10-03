@@ -17,10 +17,10 @@ app.use(express.json());
 function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: BN) {
     let hedgedPosition: BN = new BN(0);
     if (!custodyView.isStable) {
-        hedgedPosition = hedgedPosition.add(custodyView.netAmount)
+        hedgedPosition = custodyView.netAmount.div(Math.pow(10, custodyView.decimals))
 
         if (custodyView.globalShortSizes.gt(0)) {
-            const amount = custodyView.globalShortSizes.muln(Math.pow(10, custodyView.decimals)).div(custodyView.globalShortAveragePrices)
+            const amount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices)
             hedgedPosition = hedgedPosition.add(amount)
         }
     }
@@ -41,7 +41,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
-        hedgedPosition: BNToUSDRepresentation(hedgedPosition, custodyView.decimals),
+        hedgedPosition: BNToUSDRepresentation(hedgedPosition, 0),
     };
 }
 
