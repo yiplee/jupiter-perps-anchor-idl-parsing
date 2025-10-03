@@ -23,7 +23,11 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
 
         if (custodyView.globalShortSizes.gt(0)) {
             const shortAmount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices)
-            shortPosition = shortAmount.mul(jplAmount).div(supply).muln(Math.pow(10, custodyView.decimals));
+            const multiplier = Math.pow(10, custodyView.decimals);
+            console.log('Debug - custodyView.decimals:', custodyView.decimals);
+            console.log('Debug - multiplier:', multiplier);
+            console.log('Debug - isInteger:', Number.isInteger(multiplier));
+            shortPosition = shortAmount.mul(jplAmount).div(supply).muln(multiplier);
         }
     }
 
@@ -89,7 +93,11 @@ app.get('/api/jlp-info', async (req: Request, res: Response) => {
         }
 
         // scale with jlp decimals
-        jlpAmount = jlpAmount.muln(Math.pow(10, JLP_DECIMALS));
+        const jlpMultiplier = Math.pow(10, JLP_DECIMALS);
+        console.log('Debug - JLP_DECIMALS:', JLP_DECIMALS);
+        console.log('Debug - jlpMultiplier:', jlpMultiplier);
+        console.log('Debug - jlpMultiplier isInteger:', Number.isInteger(jlpMultiplier));
+        jlpAmount = jlpAmount.muln(Math.floor(jlpMultiplier));
         const serializedResponse = serializeJLPView(jlpView, jlpAmount);
 
         res.json({
