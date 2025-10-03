@@ -34,7 +34,7 @@ function serializeCustodyView(custodyView: CustodyView) {
 function serializeJLPView(jlpView: JLPView) {
     return {
         supply: BNToUSDRepresentation(jlpView.supply, JLP_DECIMALS),
-        price: BNToUSDRepresentation(jlpView.price, USDC_DECIMALS),
+        price: BNToUSDRepresentation(jlpView.price, USDC_DECIMALS, 4),
         totalAumUsd: BNToUSDRepresentation(jlpView.totalAumUsd, USDC_DECIMALS),
         custodyViews: jlpView.custodyViews.map(serializeCustodyView),
     };
