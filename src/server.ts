@@ -41,6 +41,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
         holderPosition: BNToUSDRepresentation(holderPosition, custodyView.decimals),
         shortPosition: BNToUSDRepresentation(shortPosition, USDC_DECIMALS),
+        totalPosition: BNToUSDRepresentation(holderPosition.add(shortPosition), USDC_DECIMALS),
     };
 }
 
