@@ -22,7 +22,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         holderPosition = jplAmount.mul(custodyView.netAmount).div(supply);
 
         if (custodyView.globalShortSizes.gt(0)) {
-            const shortAmount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, custodyView.decimals))
+            const shortAmount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, custodyView.decimals - USDC_DECIMALS))
             shortPosition = shortAmount.mul(jplAmount).div(supply);
         }
     }
