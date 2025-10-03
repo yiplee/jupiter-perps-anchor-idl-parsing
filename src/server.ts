@@ -15,18 +15,17 @@ app.use(express.json());
 
 // Helper function to serialize CustodyView for JSON response
 function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: BN) {
-    let hedgedPosition: BN = new BN(0);
+    let hedgedHolder: BN = new BN(0);
+    let hedgedShort: BN = new BN(0);
     if (!custodyView.isStable) {
-        hedgedPosition = custodyView.netAmount
+        hedgedHolder = custodyView.netAmount.mul(jplAmount).div(supply)
 
         if (custodyView.globalShortSizes.gt(0)) {
-            const amount: BN = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).shln(custodyView.decimals)
-            hedgedPosition = hedgedPosition.add(amount)
+            const multiplier: BN = new BN(Math.pow(10, custodyView.decimals))
+            const amount = custodyView.globalShortSizes.div(custodyView.price).mul(multiplier)
+            hedgedShort = amount.mul(jplAmount).div(supply)
         }
     }
-
-    // normalize to jlp amount
-    hedgedPosition = hedgedPosition.mul(jplAmount).div(supply)
 
     return {
         ...custodyView,
@@ -41,7 +40,9 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
-        hedgedPosition: BNToUSDRepresentation(hedgedPosition, custodyView.decimals),
+        hedgedHolder: BNToUSDRepresentation(hedgedHolder, custodyView.decimals),
+        hedgedShort: BNToUSDRepresentation(hedgedShort, custodyView.decimals),
+        totalHedged: BNToUSDRepresentation(hedgedHolder.add(hedgedShort), custodyView.decimals),
     };
 }
 
