@@ -24,7 +24,6 @@ export async function getCustodyUsdcPrice(symbol: string): Promise<BN> {
             binanceSymbol = `${normalizedSymbol}USDC`;
         }
 
-        console.log(`Fetching price for ${binanceSymbol}`);
         const response = await fetch(`https://api.binance.com/api/v3/ticker/price?symbol=${binanceSymbol}`);
 
         if (!response.ok) {
