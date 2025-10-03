@@ -15,14 +15,15 @@ app.use(express.json());
 
 // Helper function to serialize CustodyView for JSON response
 function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: BN) {
-    let holderPosition = new BN(0);
-    let shortPosition = new BN(0);
+    let holderPosition: BN = new BN(0);
+    let shortPosition: BN = new BN(0);
 
     if (!custodyView.isStable) {
         holderPosition = jplAmount.mul(custodyView.netAmount).div(supply);
 
         if (custodyView.globalShortSizes.gt(0)) {
-            shortPosition = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, custodyView.decimals)).mul(jplAmount).div(supply);
+            const shortAmount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, custodyView.decimals))
+            shortPosition = shortAmount.mul(jplAmount).div(supply);
         }
     }
 
@@ -40,7 +41,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
         holderPosition: BNToUSDRepresentation(holderPosition, custodyView.decimals),
-        shortPosition: BNToUSDRepresentation(shortPosition, USDC_DECIMALS),
+        shortPosition: BNToUSDRepresentation(shortPosition, custodyView.decimals),
         totalPosition: BNToUSDRepresentation(holderPosition.add(shortPosition), custodyView.decimals),
     };
 }
