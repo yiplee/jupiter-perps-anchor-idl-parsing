@@ -3,6 +3,7 @@ import cors from 'cors';
 import { getJLPView } from './jlp';
 import { BNToUSDRepresentation } from './utils';
 import { USDC_DECIMALS, JLP_DECIMALS } from './constants';
+import { CustodyView, JLPView } from './types';
 
 const app = express();
 const PORT = process.env.PORT || 7988;
@@ -12,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // Helper function to serialize CustodyView for JSON response
-function serializeCustodyView(custodyView: any) {
+function serializeCustodyView(custodyView: CustodyView) {
     return {
         ...custodyView,
         pubkey: custodyView.pubkey.toString(),
@@ -30,12 +31,12 @@ function serializeCustodyView(custodyView: any) {
 }
 
 // Helper function to serialize JLPView for JSON response
-function serializeJLPView(jlpView: any) {
+function serializeJLPView(jlpView: JLPView) {
     return {
-        supply: BNToUSDRepresentation(jlpView.Supply, JLP_DECIMALS),
-        price: BNToUSDRepresentation(jlpView.Price, USDC_DECIMALS),
-        totalAumUsd: BNToUSDRepresentation(jlpView.TotalAumUsd, USDC_DECIMALS),
-        custodyViews: jlpView.CustodyViews.map(serializeCustodyView),
+        supply: BNToUSDRepresentation(jlpView.supply, JLP_DECIMALS),
+        price: BNToUSDRepresentation(jlpView.price, USDC_DECIMALS),
+        totalAumUsd: BNToUSDRepresentation(jlpView.totalAumUsd, USDC_DECIMALS),
+        custodyViews: jlpView.custodyViews.map(serializeCustodyView),
     };
 }
 
