@@ -20,7 +20,7 @@ COPY . .
 RUN npm run build
 
 # Remove dev dependencies and source files to reduce image size
-RUN npm prune --production && \
+RUN npm prune --omit=dev && \
     rm -rf src tsconfig.json
 
 # Create non-root user for security
