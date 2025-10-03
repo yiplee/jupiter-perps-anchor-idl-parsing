@@ -41,7 +41,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
-        hedgedPosition: BNToUSDRepresentation(hedgedPosition, 0),
+        hedgedPosition: Number(hedgedPosition).toFixed(custodyView.decimals),
     };
 }
 
