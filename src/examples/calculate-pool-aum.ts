@@ -140,7 +140,7 @@ export function getAssetUnderManagementUsdForCustody(
 
   if (custody.isStable) {
     const aumUsd = getAssetAmountUsd(
-      getOraclePriceForStable(custodyPrice as OraclePrice),
+      getOraclePriceForStable(custodyPrice),
       owned,
       custody.decimals,
     );
