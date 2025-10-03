@@ -19,10 +19,10 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
     let shortPosition: BN = new BN(0);
 
     if (!custodyView.isStable) {
-        holderPosition = jplAmount.mul(custodyView.netAmount).div(supply);
+        holderPosition = jplAmount.mul(custodyView.netAmount).div(supply)
 
         if (custodyView.globalShortSizes.gt(0)) {
-            const shortAmount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, custodyView.decimals - USDC_DECIMALS))
+            const shortAmount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices)
             shortPosition = shortAmount.mul(jplAmount).div(supply);
         }
     }
