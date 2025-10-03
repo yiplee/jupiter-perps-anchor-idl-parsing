@@ -15,21 +15,18 @@ app.use(express.json());
 
 // Helper function to serialize CustodyView for JSON response
 function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: BN) {
-    let holderPosition: BN = new BN(0);
-    let shortPosition: BN = new BN(0);
-
+    let hedgedPosition: BN = new BN(0);
     if (!custodyView.isStable) {
-        holderPosition = jplAmount.mul(custodyView.netAmount).div(supply)
+        hedgedPosition = hedgedPosition.add(custodyView.netAmount)
 
         if (custodyView.globalShortSizes.gt(0)) {
-            const shortAmount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices)
-            const multiplier = Math.pow(10, custodyView.decimals);
-            console.log('Debug - custodyView.decimals:', custodyView.decimals);
-            console.log('Debug - multiplier:', multiplier);
-            console.log('Debug - isInteger:', Number.isInteger(multiplier));
-            shortPosition = shortAmount.mul(jplAmount).div(supply).muln(multiplier);
+            const amount = custodyView.globalShortSizes.div(custodyView.globalShortAveragePrices).muln(Math.pow(10, custodyView.decimals))
+            hedgedPosition = hedgedPosition.add(amount)
         }
     }
+
+    // normalize to jlp amount
+    hedgedPosition = hedgedPosition.mul(jplAmount).div(supply);
 
     return {
         ...custodyView,
@@ -44,9 +41,7 @@ function serializeCustodyView(custodyView: CustodyView, jplAmount: BN, supply: B
         globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
         tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
         aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
-        holderPosition: BNToUSDRepresentation(holderPosition, custodyView.decimals),
-        shortPosition: BNToUSDRepresentation(shortPosition, custodyView.decimals),
-        totalPosition: BNToUSDRepresentation(holderPosition.add(shortPosition), custodyView.decimals),
+        hedgedPosition: BNToUSDRepresentation(hedgedPosition, custodyView.decimals),
     };
 }
 
