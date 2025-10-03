@@ -1,7 +1,6 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { getJLPView } from './jlp';
-import { BN } from '@coral-xyz/anchor';
 import { BNToUSDRepresentation } from './utils';
 import { USDC_DECIMALS, JLP_DECIMALS } from './constants';
 
@@ -17,26 +16,26 @@ function serializeCustodyView(custodyView: any) {
     return {
         ...custodyView,
         pubkey: custodyView.pubkey.toString(),
-        price: BNToUSDRepresentation(custodyView.price, -USDC_DECIMALS),
-        owned: BNToUSDRepresentation(custodyView.owned, -custodyView.decimals),
-        locked: BNToUSDRepresentation(custodyView.locked, -custodyView.decimals),
-        debt: BNToUSDRepresentation(custodyView.debt, -USDC_DECIMALS),
-        netAmount: BNToUSDRepresentation(custodyView.netAmount, -custodyView.decimals),
-        guaranteedUsd: BNToUSDRepresentation(custodyView.guaranteedUsd, -USDC_DECIMALS),
-        globalShortSizes: BNToUSDRepresentation(custodyView.globalShortSizes, -USDC_DECIMALS),
-        globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, -USDC_DECIMALS),
-        tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, -USDC_DECIMALS),
-        aumUsd: BNToUSDRepresentation(custodyView.aumUsd, -USDC_DECIMALS),
+        price: BNToUSDRepresentation(custodyView.price, USDC_DECIMALS),
+        owned: BNToUSDRepresentation(custodyView.owned, custodyView.decimals),
+        locked: BNToUSDRepresentation(custodyView.locked, custodyView.decimals),
+        debt: BNToUSDRepresentation(custodyView.debt, USDC_DECIMALS),
+        netAmount: BNToUSDRepresentation(custodyView.netAmount, custodyView.decimals),
+        guaranteedUsd: BNToUSDRepresentation(custodyView.guaranteedUsd, USDC_DECIMALS),
+        globalShortSizes: BNToUSDRepresentation(custodyView.globalShortSizes, USDC_DECIMALS),
+        globalShortAveragePrices: BNToUSDRepresentation(custodyView.globalShortAveragePrices, USDC_DECIMALS),
+        tradersPnlDelta: BNToUSDRepresentation(custodyView.tradersPnlDelta, USDC_DECIMALS),
+        aumUsd: BNToUSDRepresentation(custodyView.aumUsd, USDC_DECIMALS),
     };
 }
 
 // Helper function to serialize JLPView for JSON response
 function serializeJLPView(jlpView: any) {
     return {
-        Supply: BNToUSDRepresentation(jlpView.Supply, -JLP_DECIMALS),
-        Price: BNToUSDRepresentation(jlpView.Price, -USDC_DECIMALS),
-        TotalAumUsd: BNToUSDRepresentation(jlpView.TotalAumUsd, -USDC_DECIMALS),
-        CustodyViews: jlpView.CustodyViews.map(serializeCustodyView),
+        supply: BNToUSDRepresentation(jlpView.Supply, JLP_DECIMALS),
+        price: BNToUSDRepresentation(jlpView.Price, USDC_DECIMALS),
+        totalAumUsd: BNToUSDRepresentation(jlpView.TotalAumUsd, USDC_DECIMALS),
+        custodyViews: jlpView.CustodyViews.map(serializeCustodyView),
     };
 }
 

@@ -37,8 +37,8 @@ export interface CustodyView {
 }
 
 export interface JLPView {
-    Supply: BN;
-    Price: BN;
-    TotalAumUsd: BN;
-    CustodyViews: CustodyView[];
+    supply: BN;
+    price: BN;
+    totalAumUsd: BN;
+    custodyViews: CustodyView[];
 }

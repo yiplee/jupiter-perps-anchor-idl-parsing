@@ -101,9 +101,9 @@ export async function getJLPView(): Promise<JLPView> {
         .div(new BN(mint.supply));
 
     return {
-        Supply: new BN(mint.supply),
-        Price: jlpVirtualPrice,
-        TotalAumUsd: totalAumUsd,
-        CustodyViews: custodyViews,
+        supply: new BN(mint.supply),
+        price: jlpVirtualPrice,
+        totalAumUsd: totalAumUsd,
+        custodyViews: custodyViews,
     };
 }
