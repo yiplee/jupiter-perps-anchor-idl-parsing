@@ -12,22 +12,6 @@ const PORT = process.env.PORT || 7988;
 app.use(cors());
 app.use(express.json());
 
-// Helper function to convert BN to string for JSON serialization
-function serializeBN(
-    bn: BN,
-    exponent: number = 0,
-    displayDecimals: number = 2): string {
-    if (exponent > 0) {
-        return bn.muln(Math.pow(10, exponent)).toString();
-    }
-
-    if (exponent < 0) {
-        return bn.divn(Math.pow(10, -exponent)).toString();
-    }
-
-    return bn.toString();
-}
-
 // Helper function to serialize CustodyView for JSON response
 function serializeCustodyView(custodyView: any) {
     return {
