@@ -83,16 +83,16 @@ export async function getCustodyView(symbol: string, pubkey: PublicKey): Promise
 }
 
 export async function getJLPView(): Promise<JLPView> {
-    const [btc, eth, sol, usdc, usdt, mint] = await Promise.all([
+    const [btc, eth, sol, usdc, mint] = await Promise.all([
         getCustodyView("BTC", new PublicKey(CUSTODY_PUBKEY.BTC)),
         getCustodyView("ETH", new PublicKey(CUSTODY_PUBKEY.ETH)),
         getCustodyView("SOL", new PublicKey(CUSTODY_PUBKEY.SOL)),
         getCustodyView("USDC", new PublicKey(CUSTODY_PUBKEY.USDC)),
-        getCustodyView("USDT", new PublicKey(CUSTODY_PUBKEY.USDT)),
+        // getCustodyView("USDT", new PublicKey(CUSTODY_PUBKEY.USDT)),
         getMint(RPC_CONNECTION, JLP_MINT_PUBKEY, "confirmed"),
     ])
 
-    const custodyViews = [btc, eth, sol, usdc, usdt];
+    const custodyViews = [btc, eth, sol, usdc];
     const totalAumUsd = custodyViews.reduce((acc, view) => acc.add(view.aumUsd), new BN(0));
 
     const jlpVirtualPrice = totalAumUsd
