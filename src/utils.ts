@@ -4,7 +4,7 @@ import { BN } from "@coral-xyz/anchor";
 export function BNToUSDRepresentation(
   value: BN,
   exponent: number = 8,
-  displayDecimals: number = 2,
+  displayDecimals: number = 4,
 ): string {
   const quotient = value.divn(Math.pow(10, exponent - displayDecimals));
   const usd = Number(quotient) / Math.pow(10, displayDecimals);
